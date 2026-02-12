@@ -37,6 +37,9 @@ function init_env () {
     if which fzf &> /dev/null; then
 	eval "$(fzf --zsh)"
     fi
+    if which tv &> /dev/null; then
+	eval "$(tv init zsh)"
+    fi
 
     if which zoxide &> /dev/null; then
         eval "$(zoxide init zsh)"
