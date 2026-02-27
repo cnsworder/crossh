@@ -1,11 +1,3 @@
-function load_omz() {
-    echo "Loading oh-my-zsh"
-    export ZSH=$HOME/.zplug/repos/robbyrussell/oh-my-zsh
-    if [ ! -d ${ZSH} ]; then
-        git clone https://github.com/robbyrussell/oh-my-zsh.git ${ZSH}
-    fi
-    source $ZSH/oh-my-zsh.sh
-}
 
 function chpwd () {
     eza
@@ -20,6 +12,8 @@ function openuse () {
 }
 
 function init_env () {
+    autoload -Uz compinit
+    compinit
     if which vim &> /dev/null; then
         export EDITOR=vim
     elif which emacs &> /dev/null; then
@@ -53,7 +47,6 @@ function init_env () {
 
     export HOMEBREW_PREFIX=$(brew --prefix)
     export PATH=~/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec
-    echo "PATH: $PATH"
 
     [ -f ~/.environment ] && source ~/.environment
     [ -f ~/.aliases ] && source ~/.aliases
@@ -67,67 +60,69 @@ function init_env () {
     zstyle ':fzf-tab:*' switch-group '<' '>'
 
     openuse
-
 }
 
 function load_plugs() {
-    echo "Loading plugins..."
-
     # Make sure to use double quotes to prevent shell expansion
-    zplug "zplug/zplug", hook-build:"zplug --self-manage"
-    zplug "zsh-users/zsh-syntax-highlighting"
-    zplug "zsh-users/zsh-completions"
-    zplug "zsh-users/zsh-autosuggestions"
-    zplug "zsh-users/zsh-history-substring-search"
-    zplug "zdharma-continuum/fast-syntax-highlighting"
-    # zplug "djui/alias-tips"
-    # zplug "willghatch/zsh-snippets"
-    zplug "supercrabtree/k"
-    zplug "plugins/git", from:oh-my-zsh
-    zplug "plugins/tmux", from:oh-my-zsh
-    # zplug "plugins/zsh_reload", from:oh-my-zsh
-    zplug "plugins/z", from:oh-my-zsh
-    # zplug "plugins/autojump", from:oh-my-zsh
-    zplug "themes/ys", as:theme, from:oh-my-zsh
+    # OMZ: oh-my-zsh
+    # OMZL: oh-my-zsh lib
+    # OMZP: oh-my-zsh plugin
+    # OMZT: oh-my-zsh theme
+    # zinit light zsh-users/zsh-completions
+    # zinit ice as"command" from"gh-r" mv"eza* -> eza" pick"eza/eza"
+    # zinit light eza-community/eza
+    zinit light-mode for \
+        zsh-users/zsh-completions \
+        zsh-users/zsh-autosuggestions \
+        zsh-users/zsh-history-substring-search \
+        zsh-users/zsh-syntax-highlighting \
+        zdharma-continuum/fast-syntax-highlighting \
+        supercrabtree/k
+    
+    zinit ice depth=1
+    zinit light romkatv/powerlevel10k
+    
+    zinit snippet OMZP::git
+    zinit snippet OMZP::tmux
+    zinit snippet OMZP::z
 
-    zplug "plugins/brew", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-    zplug "plugins/cask", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-    zplug "plugins/macos", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
-    zplug "iam4x/zsh-iterm-touchbar", if:"[[ $OSTYPE == *darwin* ]]"
+    if [[ $OSTYPE == *darwin* ]]; then
+        zinit snippet OMZP::brew
+    fi
 
-    zplug "plugins/linux", from:oh-my-zsh, if:"[[ $OSTYPE == *linux* ]]"
+    if [[ $OSTYPE == *linux* ]]; then
+        zinit  OMZP::linux
+    fi
 
     if which fzf &> /dev/null; then
-        zplug "$HOMEBREW_PREFIX/opt/fzf/shell", from:local, if:"[[ $OSTYPE == *darwin* ]]"
-        zplug "/usr/share/fzf", from:local, if:"[[ $OSTYPE == *linux* ]]"
-        zplug "urbainvaes/fzf-marks"
-        zplug "Aloxaf/fzf-tab"
-        zplug "SleepyBag/fuzzy-fs", use:fuzzy-fs
+        if [[ $OSTYPE == *darwin* ]]; then
+            source "$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh"
+            source "$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
+        fi
+        if [[ $OSTYPE == *linux* ]]; then
+            source "/usr/share/fzf/completion.zsh"
+            source "/usr/share/fzf/key-bindings.zsh"
+        fi
+        zinit light "urbainvaes/fzf-marks"
+        zinit light "Aloxaf/fzf-tab"
+        zinit ice pick "fuzzy-fs"
+        zinit light "SleepyBag/fuzzy-fs"
     else
-        zplug "jocelynmallon/zshmarks"
+        zinit light jocelynmallon/zshmarks
     fi
 
     if which asdf &> /dev/null; then
-        zplug "plugins/asdf". from:oh-my-zsh
+        zinit snippet OMZP::asdf
     fi
 
     if [ -d ~/dev/dev_init/tools ]; then
-        zplug "~/dev/dev_init/tools", from:local, use:"*.sh"
+        TOOLS=$(ls -e $HOME/dev/dev_init/tools/*.sh)
+        for TOOL in $(ls $HOME/dev/dev_init/tools/*.sh);do
+            [[ -f ${TOOL} ]] && source ${TOOL}
+        done
     fi
 }
 
-function check() {
-    echo -n "\nplug check..."
-    if ! zplug check; then
-        printf "Install? [y/N]: "
-        if read -q; then
-            echo; zplug install
-        else
-            echo
-        fi
-    fi
-    touch ~/.zplug/.installed
-}
 
 function init_python_env() {
 
@@ -146,8 +141,6 @@ function init_python_env() {
         export PYENV_ROOT=$HOME/.pyenv
         eval "$(pyenv init -)"
     fi
-
-    echo "init python env..."
 }
 
 
@@ -157,31 +150,20 @@ function echo_logo () {
     \e[0m"
     tput rev;tput cup 4 3
     echo ">> $(whoami)@$(hostname) <<"
+    if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+        source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+    fi
+    [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 }
 
-
-function init_zplug () {
-    if [[ ! -d ~/.zplug ]]; then
-        git clone https://github.com/zplug/zplug ~/.zplug && source ~/.zplug/init.zsh && zplug update
-    fi
-
-    if [ ! -d ~/.zplug ]; then
-        return 1
-    fi
-
-    load_omz
-    source ~/.zplug/init.zsh
-
-    if which zplug &> /dev/null; then
-        load_plugs
-        if [ ! -e ~/.zplug/.installed ]; then
-            check
-        fi
-
-        echo "zplug loaded..."
-        zplug load
-    fi
+function init_zinit () {
+    ZINIT_HOME="$HOME/.local/share/zinit/zinit.git"
+ 	[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+ 	[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+ 	source "${ZINIT_HOME}/zinit.zsh"
+    load_plugs
 }
+
 
 function init_iterm() {
     if [ '$(uname)' = 'Darwin' ]; then
@@ -201,7 +183,8 @@ function use_nvm() {
 
 function main() {
     init_env
-    init_zplug
+    #init_zplug
+    init_zinit
     init_python_env
     init_iterm
     init_ssh
@@ -250,9 +233,8 @@ function brew_mirror() {
 }
 
 function zshup() {
-    echo ">> zplug update zsh..."
-    zplug update &>> ~/allup.log
-    zplug clear &>> ~/allup.log
+    echo ">> zsh update plugin..."
+    zinit update &>> ~/allup.log
 }
 
 function pipup() {
@@ -283,3 +265,96 @@ function sshsync() {
 }
 
 main
+
+
+##################################################
+# TODO: 清理
+function init_zplug () {
+    if [[ ! -d ~/.zplug ]]; then
+        git clone https://github.com/zplug/zplug ~/.zplug && source ~/.zplug/init.zsh && zplug update
+    fi
+
+    if [ ! -d ~/.zplug ]; then
+        return 1
+    fi
+
+    load_omz
+    source ~/.zplug/init.zsh
+
+    if which zplug &> /dev/null; then
+        load_plugs
+        if [ ! -e ~/.zplug/.installed ]; then
+            check
+        fi
+
+        echo "zplug loaded..."
+        zplug load
+    fi
+}
+function zplug_load_plugs() {
+    echo "Loading plugins..."
+
+    # Make sure to use double quotes to prevent shell expansion
+    zplug "zplug/zplug", hook-build:"zplug --self-manage"
+    zplug "zsh-users/zsh-syntax-highlighting"
+    zplug "zsh-users/zsh-completions"
+    zplug "zsh-users/zsh-autosuggestions"
+    zplug "zsh-users/zsh-history-substring-search"
+    zplug "zdharma-continuum/fast-syntax-highlighting"
+    # zplug "djui/alias-tips"
+    # zplug "willghatch/zsh-snippets"
+    zplug "supercrabtree/k"
+    zplug "plugins/git", from:oh-my-zsh
+    zplug "plugins/tmux", from:oh-my-zsh
+    # zplug "plugins/zsh_reload", from:oh-my-zsh
+    zplug "plugins/z", from:oh-my-zsh
+    # zplug "plugins/autojump", from:oh-my-zsh
+    zplug "themes/ys", as:theme, from:oh-my-zsh
+
+    zplug "plugins/brew", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+    zplug "plugins/cask", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+    zplug "plugins/macos", from:oh-my-zsh, if:"[[ $OSTYPE == *darwin* ]]"
+    zplug "iam4x/zsh-iterm-touchbar", if:"[[ $OSTYPE == *darwin* ]]"
+
+    zplug "plugins/linux", from:oh-my-zsh, if:"[[ $OSTYPE == *linux* ]]"
+
+    if which fzf &> /dev/null; then
+        zplug "$HOMEBREW_PREFIX/opt/fzf/shell", from:local, if:"[[ $OSTYPE == *darwin* ]]"
+        zplug "/usr/share/fzf", from:local, if:"[[ $OSTYPE == *linux* ]]"
+        zplug "urbainvaes/fzf-marks"
+        zplug "Aloxaf/fzf-tab"
+        zplug "SleepyBag/fuzzy-fs", use:fuzzy-fs
+    else
+        zplug "jocelynmallon/zshmarks"
+    fi
+
+    if which asdf &> /dev/null; then
+        zplug "plugins/asdf". from:oh-my-zsh
+    fi
+
+    if [ -d ~/dev/dev_init/tools ]; then
+        zplug "~/dev/dev_init/tools", from:local, use:"*.sh"
+    fi
+}
+function check() {
+    echo -n "\nplug check..."
+    if ! zplug check; then
+        printf "Install? [y/N]: "
+        if read -q; then
+            echo; zplug install
+        else
+            echo
+        fi
+    fi
+    touch ~/.zplug/.installed
+}
+
+
+function load_omz() {
+    echo "Loading oh-my-zsh"
+    export ZSH=$HOME/.zplug/repos/robbyrussell/oh-my-zsh
+    if [ ! -d ${ZSH} ]; then
+        git clone https://github.com/robbyrussell/oh-my-zsh.git ${ZSH}
+    fi
+    source $ZSH/oh-my-zsh.sh
+}
