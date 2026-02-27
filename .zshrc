@@ -46,7 +46,7 @@ function init_env () {
     # bindkey '^j' snippet-expand
 
     export HOMEBREW_PREFIX=$(brew --prefix)
-    export PATH=~/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec
+    export PATH=${HOME}/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec:/${HOME}/.bun/bin
 
     [ -f ~/.environment ] && source ~/.environment
     [ -f ~/.aliases ] && source ~/.aliases
