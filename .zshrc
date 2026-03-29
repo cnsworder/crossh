@@ -45,8 +45,12 @@ function init_env () {
     # eval "$(aliases init --global)"
     # bindkey '^j' snippet-expand
 
-    export HOMEBREW_PREFIX=$(brew --prefix)
-    export PATH=${HOME}/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec:/${HOME}/.bun/bin
+    if which brew &> /dev/null; then
+        export HOMEBREW_PREFIX=$(brew --prefix)
+        export PATH=${HOME}/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec:/${HOME}/.bun/bin
+    else
+        export PATH=${HOME}/.local/bin:${HOME}/.bun/bin:/usr/local/bin:/usr/local/sbin:/usr/libexec
+    fi
 
     [ -f ~/.environment ] && source ~/.environment
     [ -f ~/.aliases ] && source ~/.aliases
@@ -149,7 +153,13 @@ function echo_logo () {
     I'm cross orbit!
     \e[0m"
     tput rev;tput cup 4 3
-    echo ">> $(whoami)@$(hostname) <<"
+    if which hostname &> /dev/null; then
+        HOSTNAME_CMD="hostname"
+    else
+        HOSTNAME_CMD="hostanamectl hostname"
+    fi
+
+    echo ">> $(whoami)@$(${HOSTNAME_CMD}) <<"
     if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
         source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
     fi
@@ -358,3 +368,9 @@ function load_omz() {
     fi
     source $ZSH/oh-my-zsh.sh
 }
+
+# Added by Antigravity
+export PATH="${HOME}/.antigravity/antigravity/bin:$PATH"
+
+# OpenClaw Completion
+source "${HOME}/.openclaw/completions/openclaw.zsh"
