@@ -49,7 +49,7 @@ function init_env () {
         export HOMEBREW_PREFIX=$(brew --prefix)
         export PATH=${HOME}/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec:/${HOME}/.bun/bin
     else
-        export PATH=${HOME}/.local/bin:${HOME}/.bun/bin:/usr/local/bin:/usr/local/sbin:/usr/libexec
+        export PATH=${HOME}/.local/bin:${HOME}/.bun/bin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/bin:/usr/sbin:/bin:/sbin:${PATH}
     fi
 
     [ -f ~/.environment ] && source ~/.environment
@@ -95,7 +95,7 @@ function load_plugs() {
     fi
 
     if [[ $OSTYPE == *linux* ]]; then
-        zinit  OMZP::linux
+        zinit snippet OMZP::linux
     fi
 
     if which fzf &> /dev/null; then
@@ -154,12 +154,12 @@ function echo_logo () {
     \e[0m"
     tput rev;tput cup 4 3
     if which hostname &> /dev/null; then
-        HOSTNAME_CMD="hostname"
+        HOSTNAME=$(hostname)
     else
-        HOSTNAME_CMD="hostanamectl hostname"
+        HOSTNAME=$(hostnamectl hostname)
     fi
 
-    echo ">> $(whoami)@$(${HOSTNAME_CMD}) <<"
+    echo ">> $(whoami)@${HOSTNAME} <<"
     if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
         source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
     fi
@@ -372,5 +372,6 @@ function load_omz() {
 # Added by Antigravity
 export PATH="${HOME}/.antigravity/antigravity/bin:$PATH"
 
+OPENCLAW_COMPLETION="${HOME}/.openclaw/completions/openclaw.zsh"
 # OpenClaw Completion
-source "${HOME}/.openclaw/completions/openclaw.zsh"
+test "${OPENCLAW_COMPLETION}" && source "${OPENCLAW_COMPLETION}"
