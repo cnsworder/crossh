@@ -5,10 +5,20 @@ function chpwd () {
 }
 
 function openuse () {
+    alias ls=eza 
     # 输入文件名打开文件
     alias -s md='bat'
     alias -s txt='bat'
     alias -s json='jq .'
+}
+
+function init_zsh () {
+    for app in $@; do
+        if which $app &> /dev/null; then
+            echo "$app init for zsh"
+            eval $($app init zsh)
+        fi
+    done
 }
 
 function init_env () {
@@ -28,6 +38,9 @@ function init_env () {
     # 展开历史
     #bindke " " magic-space
     
+    # APP=(tv zoxide atuin)
+    # init_zsh "$APP[@]"
+
     if which fzf &> /dev/null; then
 	eval "$(fzf --zsh)"
     fi
@@ -41,6 +54,13 @@ function init_env () {
 
     if which direnv &> /dev/null; then
         eval "$(direnv hook zsh)"
+    fi
+    if which atuin &> /dev/null; then
+        eval "$(atuin init zsh --disable-up-arrow)"
+        bindkey '^r' atuin-search
+    fi
+    if which hermes &> /dev/null; then
+        eval "$(hermes completion zsh)"
     fi
     # eval "$(aliases init --global)"
     # bindkey '^j' snippet-expand
@@ -192,9 +212,9 @@ function use_nvm() {
 }
 
 function main() {
-    init_env
     #init_zplug
     init_zinit
+    init_env
     init_python_env
     init_iterm
     init_ssh
@@ -374,4 +394,5 @@ export PATH="${HOME}/.antigravity/antigravity/bin:$PATH"
 
 OPENCLAW_COMPLETION="${HOME}/.openclaw/completions/openclaw.zsh"
 # OpenClaw Completion
-test "${OPENCLAW_COMPLETION}" && source "${OPENCLAW_COMPLETION}"
+test "${OPENCLAW_COMPLETION}" || source "${OPENCLAW_COMPLETION}"
+
