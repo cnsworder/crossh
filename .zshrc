@@ -14,7 +14,7 @@ function openuse () {
 
 function init_zsh () {
     for app in $@; do
-        if which $app &> /dev/null; then
+        if command -v $app &> /dev/null; then
             echo "$app init for zsh"
             eval $($app init zsh)
         fi
@@ -24,9 +24,9 @@ function init_zsh () {
 function init_env () {
     autoload -Uz compinit
     compinit
-    if which vim &> /dev/null; then
+    if command -v vim &> /dev/null; then
         export EDITOR=vim
-    elif which emacs &> /dev/null; then
+    elif command -v emacs &> /dev/null; then
         export EDITOR=emacs
     fi
     
@@ -41,31 +41,31 @@ function init_env () {
     # APP=(tv zoxide atuin)
     # init_zsh "$APP[@]"
 
-    if which fzf &> /dev/null; then
+    if command -v fzf &> /dev/null; then
 	eval "$(fzf --zsh)"
     fi
-    if which tv &> /dev/null; then
+    if command -v tv &> /dev/null; then
 	eval "$(tv init zsh)"
     fi
 
-    if which zoxide &> /dev/null; then
+    if command -v zoxide &> /dev/null; then
         eval "$(zoxide init zsh)"
     fi
 
-    if which direnv &> /dev/null; then
+    if command -v direnv &> /dev/null; then
         eval "$(direnv hook zsh)"
     fi
-    if which atuin &> /dev/null; then
+    if command -v atuin &> /dev/null; then
         eval "$(atuin init zsh --disable-up-arrow)"
         bindkey '^r' atuin-search
     fi
-    if which hermes &> /dev/null; then
+    if command -v hermes &> /dev/null; then
         eval "$(hermes completion zsh)"
     fi
     # eval "$(aliases init --global)"
     # bindkey '^j' snippet-expand
 
-    if which brew &> /dev/null; then
+    if command -v brew &> /dev/null; then
         export HOMEBREW_PREFIX=$(brew --prefix)
         export PATH=${HOME}/.local/bin:${HOMEBREW_PREFIX}/opt/openjdk/bin:$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH:/usr/local/sbin:/usr/local/bin:/usr/libexec:/${HOME}/.bun/bin
     else
@@ -118,7 +118,7 @@ function load_plugs() {
         zinit snippet OMZP::linux
     fi
 
-    if which fzf &> /dev/null; then
+    if command -v fzf &> /dev/null; then
         if [[ $OSTYPE == *darwin* ]]; then
             source "$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh"
             source "$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh"
@@ -135,7 +135,7 @@ function load_plugs() {
         zinit light jocelynmallon/zshmarks
     fi
 
-    if which asdf &> /dev/null; then
+    if cmmand -v asdf &> /dev/null; then
         zinit snippet OMZP::asdf
     fi
 
@@ -150,7 +150,7 @@ function load_plugs() {
 
 function init_python_env() {
 
-    if which uv &> /dev/null; then
+    if command -v uv &> /dev/null; then
        eval "$(uv generate-shell-completion zsh)"
     fi 
 
@@ -173,7 +173,7 @@ function echo_logo () {
     I'm cross orbit!
     \e[0m"
     tput rev;tput cup 4 3
-    if which hostname &> /dev/null; then
+    if command -v hostname &> /dev/null; then
         HOSTNAME=$(hostname)
     else
         HOSTNAME=$(hostnamectl hostname)
@@ -225,22 +225,22 @@ function main() {
 
 
 function linuxup() {
-    if which dnf > /dev/null; then
+    if command -v dnf > /dev/null; then
         echo ">> dnf update application..."
         dnf -y update &> ~/allup.log
         return
     fi
-    if which yum > /dev/null; then
+    if command -v yum > /dev/null; then
         echo ">> yum update application..."
         yum -y update &> ~/allup.log
         return
     fi
-    if which pacman > /dev/null; then
+    if command -v pacman > /dev/null; then
         echo ">> pacman update application..."
         yes | pacman -Syu &> ~/allup.log
         return
     fi
-    if which aptitude > /dev/null; then
+    if command -v aptitude > /dev/null; then
         echo ">> apt update application..."
         yes | aptitude update | aptitude upgrade &> ~/allup.log
         return
@@ -248,7 +248,7 @@ function linuxup() {
 }
 
 function macup() {
-    if which brew &> /dev/null; then
+    if command -v brew &> /dev/null; then
         echo ">> brew update application..."
         export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git"
         export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/bottles"
@@ -311,7 +311,7 @@ function init_zplug () {
     load_omz
     source ~/.zplug/init.zsh
 
-    if which zplug &> /dev/null; then
+    if command -v zplug &> /dev/null; then
         load_plugs
         if [ ! -e ~/.zplug/.installed ]; then
             check
@@ -348,7 +348,7 @@ function zplug_load_plugs() {
 
     zplug "plugins/linux", from:oh-my-zsh, if:"[[ $OSTYPE == *linux* ]]"
 
-    if which fzf &> /dev/null; then
+    if command -v fzf &> /dev/null; then
         zplug "$HOMEBREW_PREFIX/opt/fzf/shell", from:local, if:"[[ $OSTYPE == *darwin* ]]"
         zplug "/usr/share/fzf", from:local, if:"[[ $OSTYPE == *linux* ]]"
         zplug "urbainvaes/fzf-marks"
@@ -358,7 +358,7 @@ function zplug_load_plugs() {
         zplug "jocelynmallon/zshmarks"
     fi
 
-    if which asdf &> /dev/null; then
+    if command -v asdf &> /dev/null; then
         zplug "plugins/asdf". from:oh-my-zsh
     fi
 
